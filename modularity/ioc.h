@@ -66,10 +66,47 @@ public: \
     } \
 
 namespace kors::modularity {
+
 inline ModulesIoC* ioc()
 {
     return ModulesIoC::instance();
 }
+
+template<class I>
+class Inject
+{
+public:
+
+    Inject(const std::string_view& module = std::string_view())
+        : m_module(module) {}
+
+    const std::shared_ptr<I>& get() const {
+        if (!m_i) {
+            static std::mutex mutex;
+            const std::lock_guard<std::mutex> lock(mutex);
+            if (!m_i) {
+                m_i = ioc()->resolve<I>(m_module);
+            }
+        }
+        return m_i;
+    }
+
+    void set(std::shared_ptr<I> impl) {
+        m_i = impl;
+    }
+
+    I* operator()() const
+    {
+        return get().get();
+    }
+
+private:
+
+    std::string_view m_module;
+    mutable std::shared_ptr<I> m_i = nullptr;
+};
+
+
 }
 
 #endif // KORS_MODULARITY_IOC_H

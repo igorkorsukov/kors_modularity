@@ -18,6 +18,9 @@ Recommended add own aliases to use `modularity`, see [example/modularity](exampl
    
 ## ChangeLog
 
+### v1.2 
+* Added Inject class (replacing a macro)
+
 ### v1.1
 * Added internal interfaces support 
 
