@@ -25,6 +25,7 @@ SOFTWARE.
 #define KORS_MODULARITY_IOC_H
 
 #include <memory>
+#include <mutex>
 
 #include "modulesioc.h"
 
@@ -34,8 +35,12 @@ private: \
 public: \
     std::shared_ptr<Interface> getter() const {  \
         if (!m_##getter) { \
-            static const std::string_view sig(FUNC_SIG); \
-            m_##getter = kors::modularity::ioc()->resolve<Interface>(kors::funcinfo::moduleNameBySig(sig), sig); \
+            static std::mutex getter##mutex; \
+            const std::lock_guard<std::mutex> getter##lock(getter##mutex); \
+            if (!m_##getter) { \
+                static const std::string_view sig(FUNC_SIG); \
+                m_##getter = kors::modularity::ioc()->resolve<Interface>(kors::funcinfo::moduleNameBySig(sig), sig); \
+            } \
         } \
         return m_##getter; \
     } \
@@ -46,8 +51,12 @@ public: \
     static std::shared_ptr<Interface>& getter() {  \
         static std::shared_ptr<Interface> s_##getter = nullptr; \
         if (!s_##getter) { \
-            static const std::string_view sig(FUNC_SIG); \
-            s_##getter = kors::modularity::ioc()->resolve<Interface>(kors::funcinfo::moduleNameBySig(sig), sig); \
+            static std::mutex getter##mutex; \
+            const std::lock_guard<std::mutex> getter##lock(getter##mutex); \
+            if (!s_##getter) { \
+                static const std::string_view sig(FUNC_SIG); \
+                s_##getter = kors::modularity::ioc()->resolve<Interface>(kors::funcinfo::moduleNameBySig(sig), sig); \
+            } \
         } \
         return s_##getter; \
     } \
